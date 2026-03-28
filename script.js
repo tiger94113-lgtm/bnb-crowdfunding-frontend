@@ -36,6 +36,18 @@ const elements = {
     participantCount: document.getElementById('participant-count')
 };
 
+// 安全函数
+function sanitizeInput(input) {
+    return input.toString().replace(/<script[^>]*>.*?<\/script>/gi, '').trim();
+}
+
+function validateAddress(address) {
+    if (!web3.utils.isAddress(address)) {
+        return false;
+    }
+    return true;
+}
+
 // 初始化
 function init() {
     // 设置收款地址
@@ -46,12 +58,45 @@ function init() {
     setupEventListeners();
     // 检查是否已连接钱包
     checkWalletConnection();
+    // 添加CSRF防护
+    addCSRFProtection();
 }
 
 // 生成收款地址二维码
 function generateQRCode() {
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${CONFIG.RECIPIENT_ADDRESS}`;
     elements.addressQr.src = qrCodeUrl;
+}
+
+// 添加CSRF防护
+function addCSRFProtection() {
+    // 生成随机token
+    const csrfToken = generateRandomToken();
+    localStorage.setItem('csrf_token', csrfToken);
+    // 在表单中添加token
+    const form = document.createElement('form');
+    form.id = 'csrf-form';
+    form.style.display = 'none';
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'csrf_token';
+    input.value = csrfToken;
+    form.appendChild(input);
+    document.body.appendChild(form);
+}
+
+// 生成随机token
+function generateRandomToken() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+// 验证CSRF token
+function validateCSRFToken() {
+    const storedToken = localStorage.getItem('csrf_token');
+    if (!storedToken) {
+        return false;
+    }
+    return true;
 }
 
 // 设置事件监听
@@ -62,13 +107,13 @@ function setupEventListeners() {
     // 预设金额按钮
     document.querySelectorAll('.preset-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            elements.bnbAmountInput.value = btn.dataset.amount;
+            elements.bnbAmountInput.value = sanitizeInput(btn.dataset.amount);
         });
     });
     
     // 参与众筹按钮
     elements.participateBtn.addEventListener('click', () => {
-        const amount = parseFloat(elements.bnbAmountInput.value);
+        const amount = parseFloat(sanitizeInput(elements.bnbAmountInput.value));
         if (validateAmount(amount)) {
             showTransactionConfirm(amount);
         }
@@ -82,6 +127,11 @@ function setupEventListeners() {
     
     // 查询状态按钮
     elements.checkStatusBtn.addEventListener('click', checkTransactionStatus);
+    
+    // 输入框验证
+    elements.bnbAmountInput.addEventListener('input', function() {
+        this.value = sanitizeInput(this.value);
+    });
 }
 
 // 检查钱包连接状态
@@ -187,7 +237,13 @@ async function confirmTransaction() {
         return;
     }
 
-    const amount = parseFloat(elements.bnbAmountInput.value);
+    // 验证CSRF token
+    if (!validateCSRFToken()) {
+        showError('安全验证失败，请刷新页面重试');
+        return;
+    }
+
+    const amount = parseFloat(sanitizeInput(elements.bnbAmountInput.value));
     const amountInWei = web3.utils.toWei(amount.toString(), 'ether');
 
     try {
@@ -199,6 +255,11 @@ async function confirmTransaction() {
             gas: '21000',
             gasPrice: await web3.eth.getGasPrice()
         };
+
+        // 再次确认
+        if (!confirm(`确定要发送 ${amount} BNB 到 ${CONFIG.RECIPIENT_ADDRESS} 吗？`)) {
+            return;
+        }
 
         // 发送交易
         const txHash = await web3.eth.sendTransaction(txParams);
