@@ -30,10 +30,13 @@ const elements = {
     statusMessage: document.getElementById('status-message'),
     transactionHash: document.getElementById('transaction-hash'),
     checkStatusBtn: document.getElementById('check-status'),
+    backToHomeBtn: document.getElementById('back-to-home'),
     targetAmount: document.getElementById('target-amount'),
     raisedAmount: document.getElementById('raised-amount'),
     remainingSlots: document.getElementById('remaining-slots'),
-    participantCount: document.getElementById('participant-count')
+    participantCount: document.getElementById('participant-count'),
+    loading: document.getElementById('loading'),
+    loadingMessage: document.getElementById('loading-message')
 };
 
 // 安全函数
@@ -46,6 +49,17 @@ function validateAddress(address) {
         return false;
     }
     return true;
+}
+
+// 显示加载动画
+function showLoading(message) {
+    elements.loadingMessage.textContent = message || '加载中...';
+    elements.loading.style.display = 'flex';
+}
+
+// 隐藏加载动画
+function hideLoading() {
+    elements.loading.style.display = 'none';
 }
 
 // 初始化
@@ -128,6 +142,9 @@ function setupEventListeners() {
     // 查询状态按钮
     elements.checkStatusBtn.addEventListener('click', checkTransactionStatus);
     
+    // 返回首页按钮
+    elements.backToHomeBtn.addEventListener('click', backToHome);
+    
     // 输入框验证
     elements.bnbAmountInput.addEventListener('input', function() {
         this.value = sanitizeInput(this.value);
@@ -158,6 +175,8 @@ async function connectWallet() {
         return;
     }
 
+    showLoading('正在连接钱包...');
+
     try {
         // 请求连接
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -171,26 +190,31 @@ async function connectWallet() {
         const networkId = await web3.eth.net.getId();
         if (networkId !== CONFIG.NETWORK_ID) {
             showError('请切换到BSC主网');
+            hideLoading();
             return;
         }
         
         // 检查地址是否已参与
         if (await hasParticipated(currentAccount)) {
             showError('该地址已参与众筹');
+            hideLoading();
             return;
         }
         
         // 检查参与人数限制
         if (await checkParticipantLimit()) {
             showError('众筹名额已满');
+            hideLoading();
             return;
         }
         
         updateWalletStatus();
         showParticipationSection();
+        hideLoading();
     } catch (error) {
         console.error('连接钱包失败:', error);
         showError('连接钱包失败，请重试');
+        hideLoading();
     }
 }
 
@@ -246,6 +270,8 @@ async function confirmTransaction() {
     const amount = parseFloat(sanitizeInput(elements.bnbAmountInput.value));
     const amountInWei = web3.utils.toWei(amount.toString(), 'ether');
 
+    showLoading('正在处理交易...');
+
     try {
         // 构建交易参数
         const txParams = {
@@ -258,6 +284,7 @@ async function confirmTransaction() {
 
         // 再次确认
         if (!confirm(`确定要发送 ${amount} BNB 到 ${CONFIG.RECIPIENT_ADDRESS} 吗？`)) {
+            hideLoading();
             return;
         }
 
@@ -269,9 +296,11 @@ async function confirmTransaction() {
         
         // 显示交易状态
         showTransactionStatus(txHash.transactionHash, 'pending');
+        hideLoading();
     } catch (error) {
         console.error('交易失败:', error);
         showError('交易失败，请重试');
+        hideLoading();
     }
 }
 
@@ -305,6 +334,8 @@ async function checkTransactionStatus() {
     const txHash = elements.transactionHash.textContent.replace('交易哈希: ', '');
     if (!txHash) return;
 
+    showLoading('正在查询交易状态...');
+
     try {
         const receipt = await web3.eth.getTransactionReceipt(txHash);
         if (receipt) {
@@ -316,10 +347,19 @@ async function checkTransactionStatus() {
         } else {
             updateStatusMessage('pending');
         }
+        hideLoading();
     } catch (error) {
         console.error('查询交易状态失败:', error);
         showError('查询交易状态失败');
+        hideLoading();
     }
+}
+
+// 返回首页
+function backToHome() {
+    elements.transactionStatusSection.style.display = 'none';
+    elements.transactionConfirmSection.style.display = 'none';
+    elements.participationSection.style.display = 'block';
 }
 
 // 检查地址是否已参与
@@ -341,6 +381,8 @@ function recordParticipation(address) {
     if (!participants.includes(address)) {
         participants.push(address);
         localStorage.setItem('crowdfunding_participants', JSON.stringify(participants));
+        // 更新参与人数
+        updateCrowdfundingInfo(participants.length);
     }
 }
 
@@ -355,6 +397,15 @@ async function checkParticipantLimit() {
     // 这里可以添加链上验证逻辑，例如通过智能合约查询总参与人数
     // 暂时返回false
     return false;
+}
+
+// 更新众筹信息
+function updateCrowdfundingInfo(participantCount) {
+    elements.participantCount.textContent = participantCount;
+    elements.remainingSlots.textContent = CONFIG.MAX_PARTICIPANTS - participantCount;
+    // 计算已筹金额（假设每人平均0.75 BNB）
+    const raisedAmount = (participantCount * 0.75).toFixed(2);
+    elements.raisedAmount.textContent = `${raisedAmount} BNB`;
 }
 
 // 显示错误信息
