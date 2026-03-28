@@ -61,6 +61,9 @@
                 <div class="qrcode">
                     <img id="address-qr" src="" alt="收款地址二维码">
                 </div>
+                <div class="security-note">
+                    <p><strong>安全提示:</strong> 请仔细核对收款地址，确保与官方公布的地址一致</p>
+                </div>
             </div>
             <div class="confirm-buttons">
                 <button id="cancel-transaction" class="btn-secondary">取消</button>
@@ -73,6 +76,7 @@
             <div id="status-message"></div>
             <div id="transaction-hash" style="word-break: break-all;"></div>
             <button id="check-status" class="btn-secondary">查询状态</button>
+            <button id="back-to-home" class="btn-secondary" style="margin-top: 10px;">返回首页</button>
         </section>
 
         <section class="security-tips">
@@ -85,6 +89,31 @@
                 <li>如遇异常，请停止操作并联系客服</li>
             </ul>
         </section>
+
+        <section class="faq">
+            <h2>常见问题</h2>
+            <div class="faq-item">
+                <h3>如何连接钱包？</h3>
+                <p>点击"连接钱包"按钮，选择您的钱包应用（如MetaMask、Trust Wallet等），按照提示完成连接。</p>
+            </div>
+            <div class="faq-item">
+                <h3>为什么需要切换到BSC主网？</h3>
+                <p>本众筹活动使用BNB代币，需要在BSC主网上进行交易。</p>
+            </div>
+            <div class="faq-item">
+                <h3>如何查询交易状态？</h3>
+                <p>交易完成后，您可以在交易状态页面点击"查询状态"按钮，或在BSC浏览器上查询交易哈希。</p>
+            </div>
+            <div class="faq-item">
+                <h3>如果交易失败怎么办？</h3>
+                <p>请检查您的钱包余额是否充足，网络是否稳定，或联系客服寻求帮助。</p>
+            </div>
+        </section>
+    </div>
+
+    <div id="loading" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white;">
+        <div class="spinner"></div>
+        <p id="loading-message">加载中...</p>
     </div>
 
     <script src="script.js"></script>
