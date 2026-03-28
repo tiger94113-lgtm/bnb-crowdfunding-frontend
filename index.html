@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BNB众筹活动</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>BNB众筹活动</h1>
+            <p>支持区块链项目发展，参与即有机会获得丰厚回报</p>
+        </header>
+
+        <section class="crowdfunding-info">
+            <div class="info-item">
+                <h3>目标金额</h3>
+                <p id="target-amount">1000 BNB</p>
+            </div>
+            <div class="info-item">
+                <h3>已筹金额</h3>
+                <p id="raised-amount">0 BNB</p>
+            </div>
+            <div class="info-item">
+                <h3>剩余名额</h3>
+                <p id="remaining-slots">1000</p>
+            </div>
+            <div class="info-item">
+                <h3>参与人数</h3>
+                <p id="participant-count">0</p>
+            </div>
+        </section>
+
+        <section class="wallet-section">
+            <h2>连接钱包</h2>
+            <button id="connect-wallet" class="btn-primary">连接钱包</button>
+            <div id="wallet-status" class="wallet-status"></div>
+        </section>
+
+        <section class="participation-section" style="display: none;">
+            <h2>参与众筹</h2>
+            <div class="amount-input">
+                <label for="bnb-amount">输入金额 (0.5-1 BNB):</label>
+                <input type="number" id="bnb-amount" min="0.5" max="1" step="0.1" value="0.5">
+            </div>
+            <div class="preset-amounts">
+                <button class="preset-btn" data-amount="0.5">0.5 BNB</button>
+                <button class="preset-btn" data-amount="0.75">0.75 BNB</button>
+                <button class="preset-btn" data-amount="1">1 BNB</button>
+            </div>
+            <button id="participate-btn" class="btn-primary">参与众筹</button>
+        </section>
+
+        <section class="transaction-confirm" style="display: none;">
+            <h2>交易确认</h2>
+            <div class="confirm-details">
+                <p><strong>收款地址:</strong> <span id="recipient-address">0x1234567890123456789012345678901234567890</span></p>
+                <p><strong>交易金额:</strong> <span id="transaction-amount">0.5 BNB</span></p>
+                <div class="qrcode">
+                    <img id="address-qr" src="" alt="收款地址二维码">
+                </div>
+            </div>
+            <div class="confirm-buttons">
+                <button id="cancel-transaction" class="btn-secondary">取消</button>
+                <button id="confirm-transaction" class="btn-primary">确认交易</button>
+            </div>
+        </section>
+
+        <section class="transaction-status" style="display: none;">
+            <h2>交易状态</h2>
+            <div id="status-message"></div>
+            <div id="transaction-hash" style="word-break: break-all;"></div>
+            <button id="check-status" class="btn-secondary">查询状态</button>
+        </section>
+
+        <section class="security-tips">
+            <h2>安全提示</h2>
+            <ul>
+                <li>请确保连接的是您本人的钱包</li>
+                <li>验证收款地址是否正确</li>
+                <li>确认交易金额在0.5-1 BNB范围内</li>
+                <li>每个钱包地址只能参与一次</li>
+                <li>如遇异常，请停止操作并联系客服</li>
+            </ul>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
